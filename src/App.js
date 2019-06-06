@@ -1,24 +1,44 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, { useState, useEffect } from "react";
+import "./App.css";
+
+function useImageSearch () {  
+  const [images, setImages] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [query, setQuery] = useState("cats")
+  
+  useEffect(() => {
+    setLoading(true);
+
+    fetch(`https://www.reddit.com/r/aww/search.json?q=${query}`)
+      .then(response => response.json())
+      .then(json => {
+        setLoading(false)
+        setImages(json.data.children.map(child => 
+          child.data.thumbnail)
+        )
+      });
+  }, [query])
+  
+  return {
+    images,
+    loading,
+    query,
+    setQuery
+  }
+}
 
 function App() {
+  const values = useImageSearch()
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <h1>Cute Reddit Images - {values.loading && "loading"}</h1>
+      <input value={values.query} onChange={event =>
+        values.setQuery(event.target.value)
+      } />
+      <hr />
+      {values.images.map(src => (
+        <img src={src} />
+      ))}
     </div>
   );
 }
